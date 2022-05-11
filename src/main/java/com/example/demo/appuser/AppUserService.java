@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -27,7 +28,7 @@ public class AppUserService  implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(String.format(USER_NOT_FOUND_MSG, email)));
     }
 
-    public String signUp(AppUser appUser){
+    public AppUser signUp(AppUser appUser){
         boolean userExists = appUserRepository.findByEmail(appUser.getEmail()).isPresent();
 
         if(userExists){
@@ -40,7 +41,6 @@ public class AppUserService  implements UserDetailsService {
         appUser.setFirstName(appUser.getFirstName());
         appUser.setLastName(appUser.getLastName());
 
-        appUserRepository.save(appUser);
 
         String token = UUID.randomUUID().toString();
 
@@ -53,12 +53,27 @@ public class AppUserService  implements UserDetailsService {
 
         confirmationTokenService.saveConfirmationToken(confirmationToken);
 
-
-
-        return token;
+        return appUserRepository.save(appUser);
     }
 
     public int enableAppUser(String email) {
         return appUserRepository.enableAppUser(email);
+    }
+
+    public List<AppUser> findAllUsers() {
+        return appUserRepository.findAll();
+    }
+
+    public AppUser updateUser(AppUser appUser){
+        return appUserRepository.save(appUser);
+    }
+
+    public void deleteAppUser(Long id){
+        appUserRepository.deleteAppUserById(id);
+    }
+
+    public AppUser findAppUserById(Long id){
+        return appUserRepository.findAppUserById(id).orElseThrow(
+                () -> new UsernameNotFoundException("User " + id + " not found"));
     }
 }
